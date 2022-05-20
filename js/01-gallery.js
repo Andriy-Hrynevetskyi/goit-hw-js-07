@@ -3,21 +3,49 @@ import { galleryItems } from "./gallery-items.js";
 
 const gallery = document.querySelector(".gallery");
 
-function createGalleryItemMarkup(item) {
-  return `<div class="gallery__item">
-    <a class="gallery__link" href=${item.orginal}>
-      <img
-        class="gallery__image"
-        src=${item.preview}
-        data-source=${item.orginal}
-        alt=${item.description}
-      />
-    </a>
-  </div>`;
-}
+gallery.innerHTML = createGalleryMarkup(galleryItems);
 
 function createGalleryMarkup(items) {
-  return items.map((item) => createGalleryItemMarkup(item)).join("");
+  return items
+    .map(
+      ({ preview, original, description }) => `<div class="gallery__item">
+  <a class="gallery__link" href=${original}>
+    <img
+      class="gallery__image"
+      src=${preview}
+      data-source=${original}
+      alt=${description}
+    />
+  </a>
+</div>`
+    )
+    .join("");
 }
 
-gallery.innerHTML = createGalleryMarkup(galleryItems);
+let image = {};
+
+function onGalleryOpenEscPress(event) {
+  if (event.code === "Escape" && basicLightbox.visible()) {
+    image.close();
+  }
+}
+
+function onGalleryItemClick(event) {
+  event.preventDefault();
+  image = basicLightbox.create(
+    `
+      <img src=${event.target.dataset.source} >
+`,
+    {
+      onShow: (image) => {
+        window.addEventListener("keydown", onGalleryOpenEscPress);
+      },
+      onClose: (image) => {
+        window.removeEventListener("keydown", onGalleryOpenEscPress);
+      },
+    }
+  );
+  image.show();
+}
+
+gallery.addEventListener("click", onGalleryItemClick);
